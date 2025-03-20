@@ -66,21 +66,17 @@ def denormalize_series(series, feature_name, norm_params):
 def calculate_real_pnl(positions, price_changes, price_feature_name, norm_params):
     """
     Calcola il P&L reale dato le posizioni e le variazioni di prezzo denormalizzate.
-    
-    Args:
-        positions: array delle posizioni
-        price_changes: array delle variazioni di prezzo normalizzate
-        price_feature_name: nome della feature del prezzo
-        norm_params: dizionario con i parametri di normalizzazione
-        
-    Returns:
-        tuple: (P&L giornaliero denormalizzato, P&L cumulativo denormalizzato)
     """
     # Denormalizza le variazioni di prezzo
     real_price_changes = denormalize_series(price_changes, price_feature_name, norm_params)
     
+    # Assicura che positions e price_changes abbiano la stessa lunghezza
+    min_length = min(len(positions[:-1]), len(real_price_changes))
+    positions_aligned = positions[:min_length+1][:-1]  # Taglia e poi rimuovi l'ultimo
+    price_changes_aligned = real_price_changes[:min_length]
+    
     # Calcola il P&L giornaliero
-    daily_pnl = positions[:-1] * real_price_changes
+    daily_pnl = positions_aligned * price_changes_aligned
     
     # Calcola il P&L cumulativo
     cumulative_pnl = np.cumsum(daily_pnl)
